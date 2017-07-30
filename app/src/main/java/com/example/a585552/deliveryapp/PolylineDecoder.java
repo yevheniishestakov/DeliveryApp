@@ -11,10 +11,12 @@ import java.util.List;
 
 public class PolylineDecoder {
 
+    public List<LatLng> decoded = new ArrayList<LatLng>();
+
     public List<LatLng> decodePolyLine(final String poly) {
         int len = poly.length();
         int index = 0;
-        List<LatLng> decoded = new ArrayList<LatLng>();
+
         int lat = 0;
         int lng = 0;
 

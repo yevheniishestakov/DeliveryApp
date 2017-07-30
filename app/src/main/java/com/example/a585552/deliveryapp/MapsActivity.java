@@ -21,7 +21,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -44,6 +43,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LatLng MyPosition;
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
+    private PolylineDecoder polyLineDecoder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,7 +140,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             distanceToDest = mCurrentLocation.distanceTo(dest);
 
             MyPosition = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(MyPosition).title("My position, Distance to dest: " + distanceToDest));
+            //mMap.addMarker(new MarkerOptions().position(MyPosition).title("My position, Distance to dest: " + distanceToDest));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(MyPosition));
 
 
@@ -161,11 +161,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
             API api = connection.getApi();
-            api.directions("53.1333616,17.9678931", "53.132731,17.9702151", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
+            api.directions("53.115653,18.0046854", "52.2322897,20.9820285", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
                 @Override
                 public void onResponse(Call<DirectionModel> call, Response<DirectionModel> response) {
 
-                    for (int i = 0; i < response.body().routes[0].legs[0].steps.length; i++) {
+                    /*for (int i = 0; i < response.body().routes[0].legs[0].steps.length; i++) {
 
                         polyOptions.add(
                                 new LatLng(response.body().routes[0].legs[0].steps[i].start_location.getLat(),
@@ -175,7 +175,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                         );
 
+                    }*/
+
+                    polyLineDecoder = new PolylineDecoder();
+                    polyLineDecoder.decodePolyLine(response.body().routes[0].overview_polyline.getPoints());
+                    for (LatLng  point : polyLineDecoder.decoded){
+
+                        polyOptions.add(point);
                     }
+
                     polyOptions.width(15).color(Color.CYAN);
                     mMap.addPolyline(polyOptions);
 
