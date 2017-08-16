@@ -1,6 +1,8 @@
 package com.example.a585552.deliveryapp;
 
+import android.content.CursorLoader;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
@@ -24,6 +26,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -32,7 +37,7 @@ import retrofit2.Response;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener, android.app.LoaderManager.LoaderCallbacks<Cursor>{
 
     private Connection connection = new Connection();
     private String log_tag = "MapsActivity";
@@ -44,6 +49,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
     private PolylineDecoder polyLineDecoder;
+    private List<String> waypoints = new ArrayList<>();
+    private static final int DELIVERY_LOADER = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +69,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .build();
         }
 
+        getLoaderManager().initLoader(DELIVERY_LOADER, null, this);
+
 
     }
 
@@ -76,9 +85,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
 
 
+
+
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
 
 
     }
@@ -124,6 +137,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
+
+
+
         if (mCurrentLocation != null){
 
             /* Debug logs*/
@@ -143,25 +159,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //mMap.addMarker(new MarkerOptions().position(MyPosition).title("My position, Distance to dest: " + distanceToDest));
             mMap.moveCamera(CameraUpdateFactory.newLatLng(MyPosition));
 
-
-
             Polyline line;
 
             final PolylineOptions polyOptions = new PolylineOptions();
 
 
-
-
-            /*new PolylineOptions().
-                    add(new LatLng(53.1333616,17.9678931), new LatLng(53.1336349, 17.9684481))
-                    .add(new LatLng(53.1336349,17.9684481), new LatLng(53.1329103, 17.9704364))
-                    .add(new LatLng(53.1329103,17.9704364), new LatLng(53.132731,17.9702151))
-                    .width(15)
-                    .color(Color.BLUE)*/
-
+            Log.v(log_tag, waypoints.get(0));
 
             API api = connection.getApi();
-            api.directions("53.115653,18.0046854", "52.2322897,20.9820285", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
+            api.directions("53.115653,18.0046854", waypoints, "52.2322897,20.9820285", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
                 @Override
                 public void onResponse(Call<DirectionModel> call, Response<DirectionModel> response) {
 
@@ -178,7 +184,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }*/
 
                     polyLineDecoder = new PolylineDecoder();
-                    polyLineDecoder.decodePolyLine(response.body().routes[0].overview_polyline.getPoints());
+                    polyLineDecoder.decodePolyLine(response.body().routes[0].legs[0].steps[2].getPolyline().getPoints());
                     for (LatLng  point : polyLineDecoder.decoded){
 
                         polyOptions.add(point);
@@ -187,7 +193,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     polyOptions.width(15).color(Color.CYAN);
                     mMap.addPolyline(polyOptions);
 
-                    Log.v("Retrofit: ", response.body().routes[0].legs[0].steps[0].duration.getValue());
+
 
                 }
 
@@ -212,6 +218,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.e("OnCOnnectionFailed ", "con failed");
+    }
+
+
+    @Override
+    public android.content.Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        String[] projection = {
+                DeliveryDBContract.DeliveryItemEntry._ID,
+                DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION };
+
+        // This loader will execute the ContentProvider's query method on a background thread
+        return new CursorLoader(this,   // Parent activity context
+                DeliveryDBContract.DeliveryItemEntry.CONTENT_URI,   // Provider content URI to query
+                projection,             // Columns to include in the resulting Cursor
+                null,                   // No selection clause
+                null,                   // No selection arguments
+                null);                  // Default sort order
+    }
+
+    @Override
+    public void onLoadFinished(android.content.Loader<Cursor> loader, Cursor data) {
+
+        data.moveToFirst();
+        while (data.moveToNext()){
+            int colindex = data.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION);
+            String result = data.getString(colindex);
+            waypoints.add(result + "|");
+
+
+        }
+    }
+
+    @Override
+    public void onLoaderReset(android.content.Loader<Cursor> loader) {
+
     }
 
 
