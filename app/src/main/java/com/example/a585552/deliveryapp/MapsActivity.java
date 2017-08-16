@@ -164,33 +164,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             final PolylineOptions polyOptions = new PolylineOptions();
 
 
-            Log.v(log_tag, waypoints.get(0));
+
 
             API api = connection.getApi();
-            api.directions("53.115653,18.0046854", waypoints, "52.2322897,20.9820285", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
+            api.directions("53.136378, 17.964692", waypoints, "52.232434,20.984282", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
                 @Override
                 public void onResponse(Call<DirectionModel> call, Response<DirectionModel> response) {
 
-                    /*for (int i = 0; i < response.body().routes[0].legs[0].steps.length; i++) {
-
-                        polyOptions.add(
-                                new LatLng(response.body().routes[0].legs[0].steps[i].start_location.getLat(),
-                                        response.body().routes[0].legs[0].steps[i].start_location.getLng()),
-                                new LatLng(response.body().routes[0].legs[0].steps[i].end_location.getLat(),
-                                        response.body().routes[0].legs[0].steps[i].end_location.getLng())
-
-                                        );
-
-                    }*/
-
                     polyLineDecoder = new PolylineDecoder();
-                    polyLineDecoder.decodePolyLine(response.body().routes[0].legs[0].steps[2].getPolyline().getPoints());
+
+                    Log.v("Steps array: ", String.valueOf(response.body().routes.get(0).legs.get(0).steps.size()));
+                    Log.v("waypoints_len: ", String.valueOf(waypoints.size()));
+
+                    for (int i = 0; i < response.body().routes.get(0).legs.get(0).steps.size() ; i++) {
+
+                        polyLineDecoder.decodePolyLine(response.body().routes.get(0).legs.get(0).
+                                steps.get(i).getPolyline().getPoints());
+
+                    }
+
                     for (LatLng  point : polyLineDecoder.decoded){
 
                         polyOptions.add(point);
                     }
 
-                    polyOptions.width(15).color(Color.CYAN);
+                    polyOptions.width(25).color(Color.DKGRAY).clickable(true);
                     mMap.addPolyline(polyOptions);
 
 
@@ -240,7 +238,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onLoadFinished(android.content.Loader<Cursor> loader, Cursor data) {
 
-        data.moveToFirst();
+
         while (data.moveToNext()){
             int colindex = data.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION);
             String result = data.getString(colindex);

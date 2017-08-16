@@ -1,16 +1,18 @@
 package com.example.a585552.deliveryapp.DirectionDataModel;
 
+import java.util.List;
+
 /**
  * Created by Yevhenii on 16-Jul-17.
  */
 
 public class GeocodedWaypoints {
 
-    public GeocodedWaypoints[] geocoded_waypoints;
+    public List<GeocodedWaypoints> geocoded_waypoints;
 
     public String geocoder_status;
 
-    public GeocodedWaypoints[] getGeocoded_waypoints() {
+    public List<GeocodedWaypoints> getGeocoded_waypoints() {
         return geocoded_waypoints;
     }
 
@@ -22,10 +24,10 @@ public class GeocodedWaypoints {
         return place_id;
     }
 
-    public String[] getTypes() {
+    public List<String> getTypes() {
         return types;
     }
 
     public String place_id;
-    public String[] types;
+    public List<String> types;
 }

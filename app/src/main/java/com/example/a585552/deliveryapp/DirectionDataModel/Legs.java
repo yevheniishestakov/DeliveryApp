@@ -1,6 +1,7 @@
 package com.example.a585552.deliveryapp.DirectionDataModel;
 
 import java.sql.Time;
+import java.util.List;
 
 /**
  * Created by Yevhenii on 26-Jul-17.
@@ -42,7 +43,7 @@ public class Legs {
         return end_address;
     }
 
-    public Steps[] getSteps() {
+    public List<Steps> getSteps() {
         return steps;
     }
 
@@ -60,7 +61,7 @@ public class Legs {
 
     public String end_address;
 
-    public Steps[] steps;
+    public List<Steps> steps;
 
 
 }

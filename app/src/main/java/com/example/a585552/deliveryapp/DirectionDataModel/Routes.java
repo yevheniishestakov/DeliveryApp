@@ -1,5 +1,7 @@
 package com.example.a585552.deliveryapp.DirectionDataModel;
 
+import java.util.List;
+
 /**
  * Created by Yevhenii on 16-Jul-17.
  */
@@ -8,13 +10,13 @@ public class Routes {
 
     public String summary;
 
-    public Legs[] legs;
+    public List<Legs> legs;
 
     public String getSummary() {
         return summary;
     }
 
-    public Legs[] getLegs() {
+    public List<Legs> getLegs() {
         return legs;
     }
 
