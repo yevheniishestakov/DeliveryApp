@@ -5,7 +5,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,16 +17,11 @@ import com.example.a585552.deliveryapp.DirectionDataModel.DirectionModel;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -49,8 +43,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
     private PolylineDecoder polyLineDecoder;
-    private List<String> waypoints = new ArrayList<>();
+    private String waypoints = "";
     private static final int DELIVERY_LOADER = 0;
+    private String optimize_true = "optimize:true|";
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +67,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         getLoaderManager().initLoader(DELIVERY_LOADER, null, this);
-
 
     }
 
@@ -150,36 +146,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             //Test destination coordinates -  53.121771, 18.000568
 
-            Location dest = new Location(LocationManager.GPS_PROVIDER);
-            dest.setLatitude(53.121771);
-            dest.setLongitude(18.000568);
-            distanceToDest = mCurrentLocation.distanceTo(dest);
-
-            MyPosition = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-            //mMap.addMarker(new MarkerOptions().position(MyPosition).title("My position, Distance to dest: " + distanceToDest));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(MyPosition));
-
-            Polyline line;
-
             final PolylineOptions polyOptions = new PolylineOptions();
 
+            //"53.117976,18.036553|53.127066,18.073219","53.136378,17.964692", "52.232434,20.984282", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo"
 
 
+            Log.v(log_tag, waypoints.toString());
 
             API api = connection.getApi();
-            api.directions("53.136378, 17.964692", waypoints, "52.232434,20.984282", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
+            api.directions(optimize_true+waypoints,"53.136378,17.964692", "52.232434,20.984282", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
                 @Override
                 public void onResponse(Call<DirectionModel> call, Response<DirectionModel> response) {
 
                     polyLineDecoder = new PolylineDecoder();
+                    Log.v("Legs: ", String.valueOf(response.body().routes.get(0).legs.size()));
 
-                    Log.v("Steps array: ", String.valueOf(response.body().routes.get(0).legs.get(0).steps.size()));
-                    Log.v("waypoints_len: ", String.valueOf(waypoints.size()));
 
-                    for (int i = 0; i < response.body().routes.get(0).legs.get(0).steps.size() ; i++) {
+                    for (int i = 0; i < response.body().routes.get(0).legs.size(); i++) {
 
-                        polyLineDecoder.decodePolyLine(response.body().routes.get(0).legs.get(0).
-                                steps.get(i).getPolyline().getPoints());
+                        for (int j = 0; j < response.body().routes.get(0).legs.get(i).steps.size(); j++) {
+
+                            polyLineDecoder.decodePolyLine(response.body().routes.get(0).legs.get(i).
+                                    steps.get(j).getPolyline().getPoints());
+                        }
 
                     }
 
@@ -188,7 +177,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         polyOptions.add(point);
                     }
 
-                    polyOptions.width(25).color(Color.DKGRAY).clickable(true);
+                    polyOptions.width(15).color(Color.YELLOW);
                     mMap.addPolyline(polyOptions);
 
 
@@ -197,6 +186,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 @Override
                 public void onFailure(Call<DirectionModel> call, Throwable t) {
+
 
                     t.printStackTrace();
                 }
@@ -238,12 +228,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onLoadFinished(android.content.Loader<Cursor> loader, Cursor data) {
 
-
         while (data.moveToNext()){
             int colindex = data.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION);
             String result = data.getString(colindex);
-            waypoints.add(result + "|");
-
+            waypoints= waypoints+result+"|";
 
         }
     }
@@ -252,6 +240,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onLoaderReset(android.content.Loader<Cursor> loader) {
 
     }
+
+
 
 
 }

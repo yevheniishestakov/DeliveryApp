@@ -20,12 +20,15 @@ public class Connection {
         final OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
         final GsonConverterFactory converterFactory = GsonConverterFactory.create();
 
+
+
         api = new Retrofit.Builder()
                 .baseUrl(API_URL)
                 .client(okHttpClient)
                 .addConverterFactory(converterFactory)
                 .build()
                 .create(API.class);
+
     }
 
     API getApi() {
