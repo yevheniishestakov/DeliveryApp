@@ -154,7 +154,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.v(log_tag, waypoints.toString());
 
             API api = connection.getApi();
-            api.directions(optimize_true+waypoints,"53.136378,17.964692", "52.232434,20.984282", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
+            api.directions(optimize_true+waypoints, CoordinatesToString(mCurrentLocation), "52.232434,20.984282", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
                 @Override
                 public void onResponse(Call<DirectionModel> call, Response<DirectionModel> response) {
 
@@ -241,7 +241,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    private String CoordinatesToString (Location location){
 
+        String coordinatesString = String.valueOf(location.getLatitude())+","+String.valueOf(location.getLongitude());
+
+        return coordinatesString;
+    }
 
 
 }
