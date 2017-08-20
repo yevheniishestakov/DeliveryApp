@@ -17,9 +17,11 @@ import com.example.a585552.deliveryapp.DirectionDataModel.DirectionModel;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -151,6 +153,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //"53.117976,18.036553|53.127066,18.073219","53.136378,17.964692", "52.232434,20.984282", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo"
 
 
+            final CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()))
+                    .zoom(20)
+                    .tilt(30)
+                    .build();
+
             Log.v(log_tag, waypoints.toString());
 
             API api = connection.getApi();
@@ -180,8 +188,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     polyOptions.width(15).color(Color.YELLOW);
                     mMap.addPolyline(polyOptions);
 
-
-
+                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                 }
 
                 @Override

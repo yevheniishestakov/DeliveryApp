@@ -9,14 +9,19 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
@@ -24,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
     private String [] scan_results;
     private String item_name, item_destination;
-    private static final int PET_LOADER = 0;
+    private static final int DELIVERY_ITEMS_LOADER = 0;
 
     /** Adapter for the ListView */
     DeliveryCursorAdapter mCursorAdapter;
@@ -34,6 +39,31 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        ((CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar_layout)).setTitle("Screen Title");
+        RecyclerView del_recycler_view = (RecyclerView)findViewById(R.id.recyclerview);
+        del_recycler_view.setLayoutManager(new LinearLayoutManager(this));
+
+        del_recycler_view.setAdapter(new RecyclerView.Adapter<ViewHolder>() {
+            @Override
+            public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                return new ViewHolder(getLayoutInflater().inflate(R.layout.list_item, parent, false));
+            }
+
+            @Override
+            public void onBindViewHolder(ViewHolder holder, int position) {
+
+
+            }
+
+            @Override
+            public int getItemCount() {
+                return 0;
+            }
+        });
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -45,19 +75,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
-        ListView petListView = (ListView) findViewById(R.id.list);
+        ListView deliveryListView = (ListView) findViewById(R.id.list);
 
-        // Find and set empty view on the ListView, so that it only shows when the list has 0 items.
+
         View emptyView = findViewById(R.id.empty_view);
-        petListView.setEmptyView(emptyView);
+        deliveryListView.setEmptyView(emptyView);
 
-        // Setup an Adapter to create a list item for each row of pet data in the Cursor.
-        // There is no pet data yet (until the loader finishes) so pass in null for the Cursor.
+
         mCursorAdapter = new DeliveryCursorAdapter(this, null);
-        /*  . */
-        petListView.setAdapter(mCursorAdapter);
 
-        getLoaderManager().initLoader(PET_LOADER, null, this);
+        deliveryListView.setAdapter(mCursorAdapter);
+
+        getLoaderManager().initLoader(DELIVERY_ITEMS_LOADER, null, this);
 
     }
 
@@ -124,8 +153,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
                 item_name = scan_results[0];
                 item_destination = scan_results[1];
-                Toast toast = Toast.makeText(this, "Content:" + contents , Toast.LENGTH_LONG);
-                toast.show();
 
                 ContentValues content_values = new ContentValues();
                 content_values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_NAME, item_name);
@@ -140,9 +167,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     Toast.makeText(this, "Save failed",
                             Toast.LENGTH_SHORT).show();
                 } else {
-                    // Otherwise, the insertion was successful and we can display a toast.
-                    Toast.makeText(this, "Save successful",
-                            Toast.LENGTH_SHORT).show();
+
                 }
 
             }
@@ -177,5 +202,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mCursorAdapter.swapCursor(null);
+    }
+
+    private static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView text1;
+        TextView text2;
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+            text1 = (TextView) itemView.findViewById(android.R.id.text1);
+            text2 = (TextView) itemView.findViewById(android.R.id.text2);
+        }
     }
 }
