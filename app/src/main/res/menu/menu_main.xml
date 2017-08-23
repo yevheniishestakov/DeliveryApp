@@ -5,7 +5,7 @@
 
     <item
         android:id="@+id/action_show_map"
-        android:icon="@drawable/ic_action_show_map"
+        android:icon="@drawable/action_show_map_light"
         android:title="show_map"
         app:showAsAction="ifRoom"/>
 
@@ -18,8 +18,10 @@
     <item
         android:id="@+id/action_delete_all"
         android:orderInCategory="100"
+        android:icon="@drawable/action_delete_all"
         android:title="Delete all entries"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
+
 
 
 
