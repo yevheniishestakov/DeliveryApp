@@ -1,4 +1,4 @@
-package com.example.a585552.deliveryapp;
+package com.example.yevhenii.deliveryapp;
 
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -11,7 +11,7 @@ public class DeliveryDBContract {
 
     private DeliveryDBContract() {}
 
-    public static final String CONTENT_AUTHORITY = "com.example.a585552.deliveryapp";
+    public static final String CONTENT_AUTHORITY = "com.example.yevhenii.deliveryapp";
 
     /**
      * Use CONTENT_AUTHORITY to create the base of all URI's which apps will use to contact

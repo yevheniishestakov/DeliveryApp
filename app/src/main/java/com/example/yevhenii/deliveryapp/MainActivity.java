@@ -1,4 +1,4 @@
-package com.example.a585552.deliveryapp;
+package com.example.yevhenii.deliveryapp;
 
 import android.app.LoaderManager;
 import android.content.ActivityNotFoundException;

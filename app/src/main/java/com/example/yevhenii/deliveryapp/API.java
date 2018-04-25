@@ -1,6 +1,6 @@
-package com.example.a585552.deliveryapp;
+package com.example.yevhenii.deliveryapp;
 
-import com.example.a585552.deliveryapp.DirectionDataModel.DirectionModel;
+import com.example.yevhenii.deliveryapp.DirectionDataModel.DirectionModel;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

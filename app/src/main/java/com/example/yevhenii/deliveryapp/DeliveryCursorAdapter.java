@@ -1,4 +1,4 @@
-package com.example.a585552.deliveryapp;
+package com.example.yevhenii.deliveryapp;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -34,12 +34,12 @@ public class DeliveryCursorAdapter extends CursorAdapter {
         int nameColumnIndex = cursor.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_NAME);
         int destinationColumnIndex = cursor.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION);
 
-        // Read the pet attributes from the Cursor for the current pet
-        String petName = cursor.getString(nameColumnIndex);
-        String petBreed = cursor.getString(destinationColumnIndex);
+        // Read the item attributes from the Cursor for the current pet
+        String name = cursor.getString(nameColumnIndex);
+        String destination = cursor.getString(destinationColumnIndex);
 
-        // Update the TextViews with the attributes for the current pet
-        nameTextView.setText(petName);
-        summaryTextView.setText(petBreed);
+        // Update the TextViews with the attributes for the current item
+        nameTextView.setText(name);
+        summaryTextView.setText(destination);
     }
 }

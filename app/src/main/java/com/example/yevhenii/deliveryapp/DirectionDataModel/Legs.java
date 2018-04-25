@@ -1,4 +1,4 @@
-package com.example.a585552.deliveryapp.DirectionDataModel;
+package com.example.yevhenii.deliveryapp.DirectionDataModel;
 
 import java.sql.Time;
 import java.util.List;

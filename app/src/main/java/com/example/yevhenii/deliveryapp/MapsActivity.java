@@ -1,4 +1,4 @@
-package com.example.a585552.deliveryapp;
+package com.example.yevhenii.deliveryapp;
 
 import android.content.CursorLoader;
 import android.content.pm.PackageManager;
@@ -13,7 +13,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
-import com.example.a585552.deliveryapp.DirectionDataModel.DirectionModel;
+import com.example.yevhenii.deliveryapp.DirectionDataModel.DirectionModel;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -83,15 +83,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
 
 
-
-
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-
-
     }
 
     @Override

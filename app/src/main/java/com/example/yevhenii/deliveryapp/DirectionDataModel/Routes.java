@@ -1,4 +1,4 @@
-package com.example.a585552.deliveryapp.DirectionDataModel;
+package com.example.yevhenii.deliveryapp.DirectionDataModel;
 
 import java.util.List;
 

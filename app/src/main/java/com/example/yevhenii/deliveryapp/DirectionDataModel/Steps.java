@@ -1,4 +1,4 @@
-package com.example.a585552.deliveryapp.DirectionDataModel;
+package com.example.yevhenii.deliveryapp.DirectionDataModel;
 
 /**
  * Created by Yevhenii on 26-Jul-17.

@@ -1,4 +1,4 @@
-package com.example.a585552.deliveryapp;
+package com.example.yevhenii.deliveryapp;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -18,13 +18,13 @@ public class DeliveryDBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
 
-        String SQL_CREATE_PETS_TABLE =  "CREATE TABLE " + DeliveryDBContract.DeliveryItemEntry.TABLE_NAME + " ("
+        String SQL_CREATE_ITEMS_TABLE =  "CREATE TABLE " + DeliveryDBContract.DeliveryItemEntry.TABLE_NAME + " ("
                 + DeliveryDBContract.DeliveryItemEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + DeliveryDBContract.DeliveryItemEntry.COLUMN_NAME + " TEXT NOT NULL, "
                 + DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION + " TEXT NOT NULL );";
 
 
-        db.execSQL(SQL_CREATE_PETS_TABLE);
+        db.execSQL(SQL_CREATE_ITEMS_TABLE);
 
     }
 
