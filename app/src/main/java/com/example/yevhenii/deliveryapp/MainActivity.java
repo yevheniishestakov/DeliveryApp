@@ -1,15 +1,21 @@
 package com.example.yevhenii.deliveryapp;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.LoaderManager;
 import android.content.ActivityNotFoundException;
 import android.content.ContentValues;
 import android.content.CursorLoader;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -19,12 +25,13 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, NoticeDialogListener{
 
     static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
     private String [] scan_results;
     private String item_name, item_destination;
     private static final int DELIVERY_ITEMS_LOADER = 0;
+
 
     /** Adapter for the ListView */
     DeliveryCursorAdapter mCursorAdapter;
@@ -68,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -81,7 +89,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
         if (id == R.id.action_delete_all) {
-            return true;
+
+            showAlertDialog();
         }
 
         if (id == R.id.action_show_map) {
@@ -125,10 +134,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 item_name = scan_results[0];
                 item_destination = scan_results[1];
 
+                String[] destination_coordinates = item_destination.split(",");
+
+                double destination_latitude = Double.valueOf(destination_coordinates[0]);
+                double destination_longtitude = Double.valueOf(destination_coordinates[1]);
+
+
                 ContentValues content_values = new ContentValues();
                 content_values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_NAME, item_name);
-                content_values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION,item_destination);
-
+                content_values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LAT,destination_latitude);
+                content_values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LON,destination_longtitude);
 
                 Uri newUri = getContentResolver().insert(DeliveryDBContract.DeliveryItemEntry.CONTENT_URI, content_values);
                 Log.v("Adding to DB (URI):" , newUri.toString());
@@ -154,7 +169,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         String[] projection = {
                 DeliveryDBContract.DeliveryItemEntry._ID,
                 DeliveryDBContract.DeliveryItemEntry.COLUMN_NAME,
-                DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION };
+                DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LAT,
+                DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LON };
 
         // This loader will execute the ContentProvider's query method on a background thread
         return new CursorLoader(this,   // Parent activity context
@@ -175,5 +191,78 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mCursorAdapter.swapCursor(null);
     }
 
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog) {
+
+        getContentResolver().delete(DeliveryDBContract.BASE_CONTENT_URI,null,null);
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+        dialog.dismiss();
+    }
+
+    public static class MyAlertDialogFragment extends DialogFragment {
+
+        public static MyAlertDialogFragment newInstance(int title) {
+            MyAlertDialogFragment frag = new MyAlertDialogFragment();
+            Bundle args = new Bundle();
+            args.putInt("title", title);
+            frag.setArguments(args);
+            return frag;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            int title = getArguments().getInt("title");
+
+            return new AlertDialog.Builder(getActivity())
+                    .setTitle(title)
+                    .setPositiveButton(R.string.alert_dialog_ok,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    mListener.onDialogPositiveClick(MyAlertDialogFragment.this);
+                                }
+                            }
+                    )
+                    .setNegativeButton(R.string.alert_dialog_cancel,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    mListener.onDialogNegativeClick(MyAlertDialogFragment.this);
+                                }
+                            }
+                    )
+                    .create();
+        }
+
+
+        // Use this instance of the interface to deliver action events
+        NoticeDialogListener mListener;
+
+        // Override the Fragment.onAttach() method to instantiate the NoticeDialogListener
+        @Override
+        public void onAttach(Activity activity) {
+            super.onAttach(activity);
+            // Verify that the host activity implements the callback interface
+            try {
+                // Instantiate the NoticeDialogListener so we can send events to the host
+                mListener = (NoticeDialogListener) activity;
+            } catch (ClassCastException e) {
+                // The activity doesn't implement the interface, throw exception
+                throw new ClassCastException(activity.toString()
+                        + " must implement NoticeDialogListener");
+            }
+        }
+
+
+    }
+
+
+
+    private void showAlertDialog() {
+        FragmentManager fm = getSupportFragmentManager();
+        MyAlertDialogFragment alertDialog = MyAlertDialogFragment.newInstance(R.string.dialog_title_delete_all);
+        alertDialog.show(fm, "fragment_alert");
+    }
 
 }

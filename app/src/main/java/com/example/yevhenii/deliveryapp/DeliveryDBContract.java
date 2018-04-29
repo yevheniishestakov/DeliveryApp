@@ -32,7 +32,9 @@ public class DeliveryDBContract {
 
         public static final String COLUMN_NAME = "name";
 
-        public static final String COLUMN_DESTINATION = "destination";
+        public static final String COLUMN_DESTINATION_LAT = "destination_lat";
+
+        public static final String COLUMN_DESTINATION_LON = "destination_lon";
     }
 
 }

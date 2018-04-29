@@ -32,14 +32,16 @@ public class DeliveryCursorAdapter extends CursorAdapter {
 
         // Find the columns of pet attributes that we're interested in
         int nameColumnIndex = cursor.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_NAME);
-        int destinationColumnIndex = cursor.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION);
+        int destinationLatColumnIndex = cursor.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LAT);
+        int destinationLonColumnIndex = cursor.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LON);
 
         // Read the item attributes from the Cursor for the current pet
         String name = cursor.getString(nameColumnIndex);
-        String destination = cursor.getString(destinationColumnIndex);
+        double destination_lat = cursor.getDouble(destinationLatColumnIndex);
+        double destination_lon = cursor.getDouble(destinationLonColumnIndex);
 
         // Update the TextViews with the attributes for the current item
         nameTextView.setText(name);
-        summaryTextView.setText(destination);
+        summaryTextView.setText(String.valueOf(destination_lat)+String.valueOf(destination_lon));
     }
 }

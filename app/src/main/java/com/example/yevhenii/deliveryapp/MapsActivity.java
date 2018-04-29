@@ -23,7 +23,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,17 +41,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Connection connection = new Connection();
     private String log_tag = "MapsActivity";
-    private float distanceToDest;
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
     private Location mCurrentLocation;
-    private LatLng MyPosition;
+    private Location dest_location = new Location("");
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted;
     private PolylineDecoder polyLineDecoder;
     private String waypoints = "";
     private static final int DELIVERY_LOADER = 0;
     private String optimize_true = "optimize:true|";
+    private List<LatLng> coordinates_list = new ArrayList<LatLng>();
 
 
 
@@ -134,17 +138,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (mCurrentLocation != null){
 
-            /* Debug logs*/
-
-            Log.i("Result lat: ", String.valueOf(mCurrentLocation.getLatitude()));
-            Log.i("Result lon: ", String.valueOf(mCurrentLocation.getLongitude()));
 
 
+            Log.i("Current lat: ", String.valueOf(mCurrentLocation.getLatitude()));
+            Log.i("Current lon: ", String.valueOf(mCurrentLocation.getLongitude()));
+
+            Location destination = selectDestinationAndWaypoints(mCurrentLocation,coordinates_list);
+            Log.v(log_tag,"Dest coodingates: " + destination.getLatitude()+","+destination.getLongitude());
+
+            Log.v(log_tag, "Waypoints: " + waypoints);
             //Test destination coordinates -  53.121771, 18.000568
 
             final PolylineOptions polyOptions = new PolylineOptions();
 
-            //"53.117976,18.036553|53.127066,18.073219","53.136378,17.964692", "52.232434,20.984282", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo"
+
 
 
             final CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -156,7 +163,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Log.v(log_tag, waypoints.toString());
 
             API api = connection.getApi();
-            api.directions(optimize_true+waypoints, CoordinatesToString(mCurrentLocation), "52.232434,20.984282", "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
+            api.directions(optimize_true+waypoints, CoordinatesToString(mCurrentLocation), CoordinatesToString(destination), "AIzaSyAtUp6uonJ_3fHPXssi7VeNngCeVqqC0qo").enqueue(new Callback<DirectionModel>() {
                 @Override
                 public void onResponse(Call<DirectionModel> call, Response<DirectionModel> response) {
 
@@ -165,6 +172,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                     for (int i = 0; i < response.body().routes.get(0).legs.size(); i++) {
+
+                        mMap.addMarker(new MarkerOptions().position(new LatLng(response.body().routes.get(0)
+                        .legs.get(i).end_location.getLat(),response.body().routes.get(0)
+                                .legs.get(i).end_location.getLng())));
 
                         for (int j = 0; j < response.body().routes.get(0).legs.get(i).steps.size(); j++) {
 
@@ -177,9 +188,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     for (LatLng  point : polyLineDecoder.decoded){
 
                         polyOptions.add(point);
+
+
                     }
 
-                    polyOptions.width(15).color(Color.YELLOW);
+                    polyOptions.width(15).color(Color.BLUE);
                     mMap.addPolyline(polyOptions);
 
                     mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
@@ -196,7 +209,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
         else{
-            Log.v("No current location", "No current location");
+            Log.v(log_tag, "No current location");
         }
     }
 
@@ -215,7 +228,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         String[] projection = {
                 DeliveryDBContract.DeliveryItemEntry._ID,
-                DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION };
+                DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LAT,
+                DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LON };
 
         // This loader will execute the ContentProvider's query method on a background thread
         return new CursorLoader(this,   // Parent activity context
@@ -230,9 +244,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onLoadFinished(android.content.Loader<Cursor> loader, Cursor data) {
 
         while (data.moveToNext()){
-            int colindex = data.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION);
-            String result = data.getString(colindex);
-            waypoints= waypoints+result+"|";
+
+            double lat = data.getDouble(data.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LAT));
+            double lon = data.getDouble(data.getColumnIndex(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LON));
+
+
+
+            dest_location.setLatitude(lat);
+            dest_location.setLongitude(lon);
+
+            Log.v(log_tag,"dest lat" + lat);
+            Log.v(log_tag,"dest lon" + lon);
+
+            this.coordinates_list.add(new LatLng(lat,lon));
 
         }
     }
@@ -249,5 +273,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return coordinatesString;
     }
 
+    private String CoordinatestoString (LatLng location){
+
+        String coordinateString = String.valueOf(location.latitude)+","+String.valueOf(location.longitude);
+        return coordinateString;
+    }
+
+    /*
+        Method for selecting the destination, which is the most remote point from current location.
+        Method iterates throuth the list of coordinates checking if it is the most remote one. If it is - these coordinates are chosen
+        as a destination. If not - converted to String and assigned to "waypoints" variable. 
+    */
+
+    private Location selectDestinationAndWaypoints (Location origin, List<LatLng> coordingatesList){
+
+        float max = 0;
+        Location result = new Location("");
+        Location destination = new Location("");
+
+        for (LatLng i: coordingatesList){
+
+            destination.setLatitude(i.latitude);
+            destination.setLongitude(i.longitude);
+
+            if (origin.distanceTo(destination) > max){
+
+                result.setLatitude(i.latitude);
+                result.setLongitude(i.longitude);
+            }
+            else {
+                waypoints= waypoints+CoordinatestoString(i)+"|";
+
+            }
+
+            max = origin.distanceTo(destination);
+        }
+        return result;
+    }
 
 }
