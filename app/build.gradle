@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.example.yevhenii.deliveryapp"
         minSdkVersion 21
@@ -10,7 +10,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        multiDexEnabled true
+
     }
     buildTypes {
         release {
@@ -21,14 +21,13 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.squareup.retrofit2:retrofit:2.2.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.2.0'
-    compile 'com.android.support:appcompat-v7:24.1.1'
-    compile 'com.android.support:design:24.1.1'
-    compile 'com.google.android.gms:play-services:10.0.1'
-    testCompile 'junit:junit:4.12'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.squareup.retrofit2:retrofit:2.2.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.2.0'
+    implementation 'com.android.support:appcompat-v7:24.1.1'
+    implementation 'com.android.support:mediarouter-v7:24.1.1'
+    implementation 'com.android.support:design:24.1.1'
+    implementation 'com.google.android.gms:play-services:10.2.0'
+    implementation 'com.google.android.gms:play-services-vision:10.2.0'
+    testImplementation 'junit:junit:4.12'
 }

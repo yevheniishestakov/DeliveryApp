@@ -11,26 +11,41 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, NoticeDialogListener{
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.barcode.Barcode;
+import com.google.android.gms.vision.barcode.BarcodeDetector;
 
-    static final String ACTION_SCAN = "com.google.zxing.client.android.SCAN";
+
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+
     private String [] scan_results;
     private String item_name, item_destination;
     private static final int DELIVERY_ITEMS_LOADER = 0;
+    private static final String LOG_TAG = "MainActivity";
+    private static final int REQUEST_CODE_BARCODE = 1;
+
 
 
     /** Adapter for the ListView */
@@ -49,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                scanQR(new View(getApplicationContext()));
+                launchCamera();
             }
         });
 
@@ -89,8 +104,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
         if (id == R.id.action_delete_all) {
-
-            showAlertDialog();
+            
         }
 
         if (id == R.id.action_show_map) {
@@ -104,61 +118,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
 
-    public void scanQR(View v) {
 
-        try {
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE_BARCODE){
 
-            //start the scanning activity from the com.google.zxing.client.android.SCAN intent
+            if (resultCode == CommonStatusCodes.SUCCESS){
 
-            Intent intent = new Intent(ACTION_SCAN);
-            intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-            startActivityForResult(intent, 0);
-
-        } catch (ActivityNotFoundException anfe) {
-
-            //on catch, show the download dialog
-            Toast.makeText(getApplicationContext(), "Activity not found", Toast.LENGTH_SHORT);
-        }
-
-    }
-
-    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-
-        if (requestCode == 0) {
-
-            if (resultCode == RESULT_OK) {
-
-                String contents = intent.getStringExtra("SCAN_RESULT");
-                scan_results = contents.split(";");
-
-                item_name = scan_results[0];
-                item_destination = scan_results[1];
-
-                String[] destination_coordinates = item_destination.split(",");
-
-                double destination_latitude = Double.valueOf(destination_coordinates[0]);
-                double destination_longtitude = Double.valueOf(destination_coordinates[1]);
-
-
-                ContentValues content_values = new ContentValues();
-                content_values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_NAME, item_name);
-                content_values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LAT,destination_latitude);
-                content_values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LON,destination_longtitude);
-
-                Uri newUri = getContentResolver().insert(DeliveryDBContract.DeliveryItemEntry.CONTENT_URI, content_values);
-                Log.v("Adding to DB (URI):" , newUri.toString());
-                // Show a toast message depending on whether or not the insertion was successful.
-                if (newUri == null) {
-                    // If the new content URI is null, then there was an error with insertion.
-                    Toast.makeText(this, "Save failed",
-                            Toast.LENGTH_SHORT).show();
-                } else {
-
+                if (data!=null){
+                    Barcode barcode = data.getParcelableExtra(BarcodeScanner.BarcodeObject);
+                    Log.v(LOG_TAG,barcode.displayValue);
                 }
 
             }
         }
-
     }
 
 
@@ -191,78 +164,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mCursorAdapter.swapCursor(null);
     }
 
-    @Override
-    public void onDialogPositiveClick(DialogFragment dialog) {
-
-        getContentResolver().delete(DeliveryDBContract.BASE_CONTENT_URI,null,null);
-    }
-
-    @Override
-    public void onDialogNegativeClick(DialogFragment dialog) {
-        dialog.dismiss();
-    }
-
-    public static class MyAlertDialogFragment extends DialogFragment {
-
-        public static MyAlertDialogFragment newInstance(int title) {
-            MyAlertDialogFragment frag = new MyAlertDialogFragment();
-            Bundle args = new Bundle();
-            args.putInt("title", title);
-            frag.setArguments(args);
-            return frag;
-        }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            int title = getArguments().getInt("title");
-
-            return new AlertDialog.Builder(getActivity())
-                    .setTitle(title)
-                    .setPositiveButton(R.string.alert_dialog_ok,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
-                                    mListener.onDialogPositiveClick(MyAlertDialogFragment.this);
-                                }
-                            }
-                    )
-                    .setNegativeButton(R.string.alert_dialog_cancel,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
-                                    mListener.onDialogNegativeClick(MyAlertDialogFragment.this);
-                                }
-                            }
-                    )
-                    .create();
-        }
-
-
-        // Use this instance of the interface to deliver action events
-        NoticeDialogListener mListener;
-
-        // Override the Fragment.onAttach() method to instantiate the NoticeDialogListener
-        @Override
-        public void onAttach(Activity activity) {
-            super.onAttach(activity);
-            // Verify that the host activity implements the callback interface
-            try {
-                // Instantiate the NoticeDialogListener so we can send events to the host
-                mListener = (NoticeDialogListener) activity;
-            } catch (ClassCastException e) {
-                // The activity doesn't implement the interface, throw exception
-                throw new ClassCastException(activity.toString()
-                        + " must implement NoticeDialogListener");
-            }
-        }
-
-
-    }
-
-
-
-    private void showAlertDialog() {
-        FragmentManager fm = getSupportFragmentManager();
-        MyAlertDialogFragment alertDialog = MyAlertDialogFragment.newInstance(R.string.dialog_title_delete_all);
-        alertDialog.show(fm, "fragment_alert");
+    private void launchCamera() {
+        Intent takePictureIntent = new Intent(this, BarcodeScanner.class);
+        startActivityForResult(takePictureIntent, REQUEST_CODE_BARCODE);
     }
 
 }

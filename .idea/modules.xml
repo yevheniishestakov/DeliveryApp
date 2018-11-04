@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://D:\DeliveryApp\DeliveryApp_cloned\DeliveryApp.iml" filepath="D:\DeliveryApp\DeliveryApp_cloned\DeliveryApp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/DeliveryApp.iml" filepath="$PROJECT_DIR$/.idea/DeliveryApp.iml" />
+      <module fileurl="file://D:/DeliveryApp/DeliveryApp_cloned/DeliveryApp.iml" filepath="D:/DeliveryApp/DeliveryApp_cloned/DeliveryApp.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/DeliveryApp_cloned.iml" filepath="$PROJECT_DIR$/.idea/DeliveryApp_cloned.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
