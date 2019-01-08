@@ -180,7 +180,7 @@ public class BarcodeScanner extends AppCompatActivity{
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Multitracker sample")
+        builder.setTitle("DeliveryApp")
                 .setMessage("No camera permission")
                 .setPositiveButton("Ok", listener)
                 .show();

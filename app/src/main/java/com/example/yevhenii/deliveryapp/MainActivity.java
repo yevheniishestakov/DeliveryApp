@@ -11,6 +11,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -36,6 +37,8 @@ import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
+
+import java.net.URI;
 
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -128,6 +131,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 if (data!=null){
                     Barcode barcode = data.getParcelableExtra(BarcodeScanner.BarcodeObject);
                     Log.v(LOG_TAG,barcode.displayValue);
+                    scan_results = barcode.displayValue.split(";");
+
+                    item_name = scan_results[0];
+                    item_destination = scan_results[1];
+
+                    String [] destination = item_destination.split(",");
+                    String dest_lon = destination[0];
+                    String dest_lat = destination[1];
+
+                    ContentValues values = new ContentValues();
+                    values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_NAME, item_name);
+                    values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LAT,dest_lat);
+                    values.put(DeliveryDBContract.DeliveryItemEntry.COLUMN_DESTINATION_LON,dest_lon);
+
+                    Uri itemsUri = getContentResolver().insert(DeliveryDBContract.DeliveryItemEntry.CONTENT_URI,
+                            values);
+
                 }
 
             }
